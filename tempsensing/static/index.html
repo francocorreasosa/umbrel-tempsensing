@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f3ee"><title>Tempsensing · Tu casa, en grados</title>
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script>
+</head>
+<body>
+<header><a class="brand" href="/" aria-label="Tempsensing, inicio"><img src="/static/icon.svg" alt="" width="34" height="34">tempsensing<span> / casa</span></a><span id="connection" class="connection">Conectando…</span></header>
+<main>
+  <section class="intro"><div><p class="eyebrow">EL CLIMA DE PUERTAS ADENTRO</p><h1>Tu casa, en grados.</h1><p class="subtle">Temperatura y humedad, con un poco de perspectiva.</p></div><button id="manage" class="primary">Gestionar sensores <span aria-hidden="true">＋</span></button></section>
+  <div id="notice" role="status" hidden></div>
+  <section id="cards" class="cards" aria-label="Mediciones actuales"></section>
+  <section id="empty" class="empty" hidden><span class="empty-symbol" aria-hidden="true">°</span><h2>Empezá por un ambiente.</h2><p>Buscá tus sensores Bluetooth y activá los que querés registrar.<br>El historial empieza con la primera lectura.</p><button id="first-scan" class="primary">Buscar sensores</button></section>
+  <section id="history" class="history">
+    <div class="section-top"><div><p class="eyebrow">HISTORIAL</p><h2>Cómo cambia tu espacio</h2></div><div class="history-tools"><label class="sr-only" for="range">Período del gráfico</label><select id="range"><option value="1">Última hora</option><option value="6">Últimas 6 horas</option><option value="24" selected>Últimas 24 horas</option><option value="168">Últimos 7 días</option><option value="720">Últimos 30 días</option><option value="8760">Último año</option></select><a id="export" class="button secondary" href="/api/export?hours=24">Exportar CSV</a></div></div>
+    <div class="chart-toolbar"><div class="tabs" role="group" aria-label="Medición"><button id="temperature-tab" class="selected" aria-pressed="true">Temperatura</button><button id="humidity-tab" aria-pressed="false">Humedad</button></div><span id="chart-unit">°C</span></div>
+    <div id="legend" class="legend" aria-label="Sensores del gráfico"></div>
+    <div class="plot"><svg id="chart" viewBox="0 0 1000 310" role="img" aria-label="Historial de temperatura"></svg><p id="chart-empty" hidden>Todavía no hay lecturas en este período.</p></div>
+    <p id="chart-detail" class="chart-detail">Pasá el cursor por el gráfico para ver una lectura.</p>
+    <div class="chart-footer"><span id="aggregation">Lecturas guardadas localmente</span><span>Las interrupciones de señal aparecen como huecos.</span></div>
+  </section>
+  <footer><span>Hecho para tu casa. Los datos se quedan acá.</span><span id="schedule">Historial de 365 días</span></footer>
+</main>
+<dialog id="settings-dialog">
+  <div class="dialog-head"><div><p class="eyebrow">CONFIGURACIÓN</p><h2>Tus sensores</h2></div><button id="close-dialog" class="close" aria-label="Cerrar">×</button></div>
+  <p class="subtle">Sensores Xiaomi LYWSD03MMC cercanos. Activá cada sensor y asignale el nombre del ambiente.</p>
+  <div class="scan-bar"><button id="scan" class="secondary">Buscar por Bluetooth</button><span id="scan-status" role="status"></span></div>
+  <div id="devices" class="devices"></div>
+  <form id="interval-form"><label for="interval">Frecuencia de lectura</label><div class="interval-row"><select id="interval"><option value="60">Cada minuto</option><option value="120">Cada 2 minutos</option><option value="300" selected>Cada 5 minutos</option><option value="600">Cada 10 minutos</option><option value="900">Cada 15 minutos</option><option value="1800">Cada 30 minutos</option><option value="3600">Cada hora</option></select><button class="primary" type="submit">Guardar</button></div><p class="hint">Cada consulta abre una conexión breve. Un intervalo mayor reduce el uso de batería. Los sensores se consultan uno por uno.</p></form>
+  <p id="settings-message" role="status"></p>
+</dialog>
+</body></html>

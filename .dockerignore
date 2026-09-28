@@ -1,0 +1,6 @@
+*
+!requirements.txt
+!sensors.py
+!tempsensing/
+!tempsensing/**
+**/__pycache__
