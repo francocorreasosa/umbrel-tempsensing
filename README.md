@@ -17,6 +17,14 @@ Activate the sensors you own and give them room names. The host needs a working
 Bluetooth adapter, BlueZ and its system D-Bus socket at `/run/dbus/system_bus_socket`.
 The app does not change sensor firmware or require a Xiaomi account.
 
+The package's `hooks/pre-start` raises existing Bluetooth adapters' runtime LE
+supervision timeout to at least 6 seconds. Umbrel Home's 420 ms default caused
+`Connection Failed to be Established (0x3e)` with these sensors in hardware testing.
+This host hook runs before the containers and is reapplied on app/system startup;
+it does not change `/etc/bluetooth/main.conf`, reset the radio, or reduce a higher
+timeout. It requires the host's `/sys/kernel/debug/bluetooth/hci*/supervision_timeout`
+files. If you manually power-cycle the adapter, restart Tempsensing to reapply it.
+
 The default polling interval is five minutes. Each sensor is connected briefly,
 one at a time; a failed reading is retried at the next interval. Actual intervals
 can be longer when sensors take time to respond. More frequent connections can

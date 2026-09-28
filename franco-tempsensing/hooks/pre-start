@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Xiaomi's sleeping BLE peripherals can fail to establish a link with Linux's
+# 420 ms default. Set a 6 s minimum on existing adapters before starting Bleak.
+# Values are in 10 ms units. This runtime setting is reapplied at app startup;
+# it does not rewrite BlueZ configuration or reset/disconnect any adapter.
+for setting in /sys/kernel/debug/bluetooth/hci*/supervision_timeout; do
+  [[ -f "$setting" ]] || continue
+  link_timeout=$(cat "$setting")
+  case "$link_timeout" in ''|*[!0-9]*) continue ;; esac
+  if (( link_timeout < 600 )); then
+    printf '600\n' > "$setting"
+    echo "Tempsensing: set ${setting} to 600 (6 seconds)"
+  fi
+done
