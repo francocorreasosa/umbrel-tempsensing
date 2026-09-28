@@ -3,11 +3,12 @@ import os
 import tempfile
 import time
 import unittest
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from sensors import decode
 from tempsensing import db
-from tempsensing.collector import cycle
+from tempsensing.collector import cycle, sensor_model
 from tempsensing.web import create_app
 
 
@@ -34,6 +35,18 @@ class AppTests(unittest.TestCase):
         for packet in (b'', b'123456', bytes.fromhex('290965b80b')):
             with self.assertRaises(ValueError):
                 decode(packet)
+
+    def test_unnamed_mibeacon_discovery_identifies_only_supported_product(self):
+        device = SimpleNamespace(name=None)
+        adv = SimpleNamespace(local_name=None, service_data={})
+        key = '0000fe95-0000-1000-8000-00805f9b34fb'
+        self.assertIsNone(sensor_model(device, adv))
+        adv.service_data[key] = bytes.fromhex('58585b0505')
+        self.assertEqual(sensor_model(device, adv), 'LYWSD03MMC')
+        adv.service_data[key] = bytes.fromhex('5858870305')
+        self.assertIsNone(sensor_model(device, adv))
+        adv.service_data[key] = b'\x58'
+        self.assertIsNone(sensor_model(device, adv))
 
     def test_discovery_does_not_enable_or_overwrite_names(self):
         self.assertFalse(self.client.get('/api/status').json['sensors'][0]['enabled'])

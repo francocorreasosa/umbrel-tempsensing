@@ -38,7 +38,7 @@ function render() {
 function renderScan() {
   const busy = ['pending','scanning'].includes(state.scan_state);
   $('#scan').disabled = busy && state.collector_online;
-  $('#scan-status').textContent = state.scan_state === 'scanning' ? 'Buscando durante 15 segundos…' : state.scan_state === 'pending' ? 'Búsqueda en cola…' : state.scan_state === 'error' ? `Bluetooth: ${state.scan_error}` : `${state.scan_count} sensores encontrados en la última búsqueda`;
+  $('#scan-status').textContent = state.scan_state === 'scanning' ? 'Buscando durante 30 segundos…' : state.scan_state === 'pending' ? 'Búsqueda en cola…' : state.scan_state === 'error' ? `Bluetooth: ${state.scan_error}` : `${state.scan_count} sensores encontrados en la última búsqueda`;
 }
 function renderDevices() {
   const devices = state.sensors.map(s => {

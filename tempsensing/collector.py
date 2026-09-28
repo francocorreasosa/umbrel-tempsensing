@@ -12,16 +12,28 @@ from tempsensing import db
 log = logging.getLogger(__name__)
 
 
+def sensor_model(device, adv):
+    name = adv.local_name or device.name or ""
+    if name.upper() == "LYWSD03MMC":
+        return "LYWSD03MMC"
+    # BlueZ may receive MiBeacon frames without a local-name scan response.
+    # Product ID is little endian after the two frame-control bytes.
+    frame = adv.service_data.get("0000fe95-0000-1000-8000-00805f9b34fb", b"")
+    if len(frame) >= 5 and int.from_bytes(frame[2:4], "little") == 0x055B:
+        return "LYWSD03MMC"
+    return None
+
+
 async def scan():
     db.set_settings(scan_state="scanning", scan_error="", scan_requested="0")
     try:
-        async with asyncio.timeout(35):
-            devices = await BleakScanner.discover(timeout=15, return_adv=True)
+        async with asyncio.timeout(50):
+            devices = await BleakScanner.discover(timeout=30, return_adv=True)
         count = 0
         for device, adv in devices.values():
-            name = adv.local_name or device.name or ""
-            if name.upper() == "LYWSD03MMC":
-                db.discover(device.address, name, adv.rssi)
+            model = sensor_model(device, adv)
+            if model:
+                db.discover(device.address, model, adv.rssi)
                 count += 1
         db.set_settings(scan_state="done", scan_finished=time.time(), scan_count=count)
     except Exception as error:
