@@ -83,3 +83,7 @@ by the store are pinned by digest after publishing. Update the manifest version,
 release notes and image references together for subsequent releases.
 
 Packaging follows the [Umbrel Community App Store template](https://github.com/getumbrel/umbrel-community-app-store).
+
+## AFYEEV Monitor
+
+Esta tienda también incluye **AFYEEV Monitor**, para registrar por red local el estado, las cargas y el consumo de un cargador AFYEEV. [Instalación y configuración](AFYEEV.md).
