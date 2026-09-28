@@ -13,3 +13,7 @@ El monitor solo consulta el cargador y guarda su historial desde la instalación
 La tarifa inicial es UTE Residencial Triple Horario 2026 con IVA: valle 00–07 a $2,98/kWh, punta hábil 17–21 a $14,68/kWh y llano a $6,31/kWh. Incluye feriados UTE de 2026; revisá horarios, precios y feriados en Configuración. El ciclo de facturación es del 7 al 6 y estima únicamente la energía del cargador, sin cargos fijos ni potencia contratada.
 
 El repositorio de desarrollo es privado. Las imágenes Docker son públicas para permitir la instalación desde Umbrel sin credenciales de GitHub.
+
+## Actualización 0.1.1
+
+Corrige la potencia en cero durante la carga. El cargador entrega las mediciones en un mensaje separado después de una solicitud de refresco; la app ahora lo recibe. La energía y el costo se estiman integrando esa potencia, porque el contador acumulado puede quedar desactualizado. Si se actualiza durante una sesión, se conserva el historial y se marca parcial el tramo anterior que no tuvo medición válida. No es necesario reinstalar ni volver a ingresar la conexión.

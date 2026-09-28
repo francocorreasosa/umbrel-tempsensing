@@ -5,7 +5,7 @@ services:
       APP_HOST: franco-afyeev_server_1
       APP_PORT: 8000
   init_data:
-    image: ghcr.io/francocorreasosa/afyeev-charger@sha256:968f6952a199a593ae0e411a378b6197a2bdb9f461514ae9b99e0a1662374f87
+    image: ghcr.io/francocorreasosa/afyeev-charger@sha256:97e6ca72605fd3a53e15200c3feaafbdf7d56e14651071780433b0f4aa1fe7c3
     user: "0:0"
     entrypoint: ["sh", "-c", "chown 1000:1000 /data && chmod 700 /data"]
     volumes:
@@ -13,7 +13,7 @@ services:
     restart: "no"
   server:
     # Release tooling replaces this with a public image pinned by digest.
-    image: ghcr.io/francocorreasosa/afyeev-charger@sha256:968f6952a199a593ae0e411a378b6197a2bdb9f461514ae9b99e0a1662374f87
+    image: ghcr.io/francocorreasosa/afyeev-charger@sha256:97e6ca72605fd3a53e15200c3feaafbdf7d56e14651071780433b0f4aa1fe7c3
     user: "1000:1000"
     init: true
     restart: on-failure

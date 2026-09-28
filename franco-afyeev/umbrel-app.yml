@@ -2,16 +2,17 @@ manifestVersion: 1
 id: franco-afyeev
 category: automation
 name: AFYEEV Monitor
-version: "0.1.0"
+version: "0.1.1"
 tagline: Tu cargador, cada sesión y su consumo
 description: >-
   Monitoreá tu cargador AFYEEV por la red local. Consultá estado, potencia,
   temperatura, historial de sesiones y costos estimados por franja horaria.
-  Configurá IP, ID y clave local desde el navegador. Sin comandos de control
+  Configurá IP, ID y clave local desde el navegador. Sin controles de carga
   ni dependencia de Tuya Cloud. El historial comienza con la instalación.
 releaseNotes: >-
-  Primera versión: lecturas locales, sesiones persistentes, gráficos,
-  tarifas versionadas, exportaciones CSV y copia SQLite.
+  Corrige potencia en cero durante la carga: solicita telemetría en vivo y
+  lee el mensaje de fase del cargador. Estima energía y costo desde la
+  potencia cuando los contadores están desactualizados. Conserva el historial.
 developer: AFYEEV Monitor contributors
 website: "https://github.com/francocorreasosa/umbrel-tempsensing"
 dependencies: []
