@@ -4,7 +4,7 @@ name: Tempsensing
 tagline: El historial de temperatura y humedad de tu casa
 icon: https://raw.githubusercontent.com/francocorreasosa/umbrel-tempsensing/main/tempsensing/static/icon.svg
 category: automation
-version: "0.1.1"
+version: "0.1.2"
 port: 8765
 description: >-
   Consultá tus sensores Xiaomi LYWSD03MMC por Bluetooth y guardá las mediciones

@@ -20,6 +20,8 @@ def database():
 
 
 def init():
+    # Both processes share GID 1000; SQLite's WAL/SHM inherit the database mode.
+    os.umask(0o002)
     with database() as conn:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.executescript("""
