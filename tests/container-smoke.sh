@@ -8,8 +8,8 @@ docker run --rm --user 0:0 -v "$volume:/data" "$image" sh -c 'chown -R 1000:1000
 # The web process creates the DB with its real UID and dropped capabilities.
 docker run --rm --cap-drop ALL --security-opt no-new-privileges -v "$volume:/data" "$image" \
   python -c 'from tempsensing import db; db.init(); db.discover("test", "LYWSD03MMC", -60)'
-# The root BlueZ worker must be able to write through the shared GID.
-docker run --rm --user 0:1000 --cap-drop ALL --security-opt no-new-privileges -v "$volume:/data" "$image" \
+# The BlueZ worker runs independently with the same non-root identity.
+docker run --rm --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges -v "$volume:/data" "$image" \
   python -c 'from tempsensing import db; db.init(); db.record("test", dict(temperature_c=23.45, humidity_percent=50, battery_voltage=3.0))'
 # The web process must still read AND write after the worker's connection closes.
 docker run --rm --cap-drop ALL --security-opt no-new-privileges -v "$volume:/data" "$image" \

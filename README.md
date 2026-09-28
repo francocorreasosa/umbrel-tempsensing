@@ -34,10 +34,10 @@ Voltage is reported directly, without estimating battery percentage.
 - `init_data`: sets the data directory owner once during startup.
 - `${APP_DATA_DIR}/data/sensors.sqlite3`: shared SQLite database in WAL mode.
 
-The worker runs as root with group 1000 for BlueZ's system-bus policy, with all
-Linux capabilities dropped and `no-new-privileges`. Only it gets the host D-Bus
-mount. The web service runs as UID 1000. No privileged container or Docker socket
-is required. The D-Bus mount allows calls to host services; it is not a Bluetooth-only
+Both the worker and web service run as UID/GID 1000, with all Linux capabilities
+dropped and `no-new-privileges`. Umbrel's BlueZ policy allows non-root calls to
+`org.bluez`. Only the worker gets the host D-Bus mount. No privileged container or
+Docker socket is required. The D-Bus mount allows calls to host services; it is not a Bluetooth-only
 authorization boundary. Keep this app limited to trusted users of your Umbrel.
 
 App authentication is provided by Umbrel; do not expose the web container directly

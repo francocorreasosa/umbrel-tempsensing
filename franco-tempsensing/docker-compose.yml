@@ -32,9 +32,9 @@ services:
   collector:
     image: ghcr.io/francocorreasosa/umbrel-tempsensing:0.1.3
     command: ["python", "-m", "tempsensing.collector"]
-    # BlueZ's system-bus policy typically authorizes root. No privileged mode,
-    # host filesystem or Docker socket; only this worker gets D-Bus access.
-    user: "0:1000"
+    # Umbrel's BlueZ policy allows org.bluez calls from UID 1000.
+    # Both processes use the same identity for SQLite WAL ownership.
+    user: "1000:1000"
     init: true
     restart: on-failure
     network_mode: host
@@ -50,5 +50,3 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    # Share SQLite ownership with the unprivileged web process.
-    entrypoint: ["sh", "-c", "umask 002; exec python -m tempsensing.collector"]
