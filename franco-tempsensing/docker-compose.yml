@@ -5,14 +5,14 @@ services:
       APP_HOST: franco-tempsensing_web_1
       APP_PORT: 8080
   init_data:
-    image: ghcr.io/francocorreasosa/umbrel-tempsensing:0.1.3
+    image: ghcr.io/francocorreasosa/umbrel-tempsensing:0.1.3@sha256:1f3a718b750edf48b8a921c2d4f5a5e2cbb85c8ae5691f002ffe1861c57f6d02
     user: "0:0"
     entrypoint: ["sh", "-c", "chown -R 1000:1000 /data && chmod -R u+rwX,g+rwX /data"]
     volumes:
       - ${APP_DATA_DIR}/data:/data
     restart: "no"
   web:
-    image: ghcr.io/francocorreasosa/umbrel-tempsensing:0.1.3
+    image: ghcr.io/francocorreasosa/umbrel-tempsensing:0.1.3@sha256:1f3a718b750edf48b8a921c2d4f5a5e2cbb85c8ae5691f002ffe1861c57f6d02
     init: true
     restart: on-failure
     depends_on:
@@ -30,7 +30,7 @@ services:
       timeout: 10s
       retries: 3
   collector:
-    image: ghcr.io/francocorreasosa/umbrel-tempsensing:0.1.3
+    image: ghcr.io/francocorreasosa/umbrel-tempsensing:0.1.3@sha256:1f3a718b750edf48b8a921c2d4f5a5e2cbb85c8ae5691f002ffe1861c57f6d02
     command: ["python", "-m", "tempsensing.collector"]
     # Umbrel's BlueZ policy allows org.bluez calls from UID 1000.
     # Both processes use the same identity for SQLite WAL ownership.
