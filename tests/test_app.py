@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 from sensors import decode
 from tempsensing import db
-from tempsensing.collector import cycle, sensor_model
+from tempsensing.collector import cycle, sensor_model, sample
 from tempsensing.web import create_app
 
 
@@ -67,6 +67,22 @@ class AppTests(unittest.TestCase):
         self.assertEqual(len(points), 1)
         self.assertEqual(points[0]['temperature_c'], 23.45)
         self.assertEqual(create_app().test_client().get('/api/status').json['sensors'][0]['temperature_c'], 23.45)
+
+    def test_sample_reuses_live_scanner_device_and_decodes_notification(self):
+        device = SimpleNamespace(address=self.address)
+        client = AsyncMock()
+        char = SimpleNamespace(properties=['notify'])
+        client.services = SimpleNamespace(get_characteristic=lambda _: char)
+        client.__aenter__.return_value = client
+
+        async def notify(characteristic, callback):
+            callback(characteristic, bytes.fromhex('290932b80b'))
+        client.start_notify.side_effect = notify
+        with patch('tempsensing.collector._scanner', SimpleNamespace(discovered_devices=[device])), patch('tempsensing.collector.BleakClient', return_value=client) as factory:
+            result = asyncio.run(sample(self.address))
+            self.assertIs(factory.call_args.args[0], device)
+            self.assertEqual(result['temperature_c'],23.45)
+            client.__aexit__.assert_awaited_once()
 
     def test_failed_sensor_does_not_prevent_other_readings_and_recovers(self):
         self.enable()

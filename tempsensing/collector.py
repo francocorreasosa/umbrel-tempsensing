@@ -10,6 +10,8 @@ from sensors import DATA_UUID, decode
 from tempsensing import db
 
 log = logging.getLogger(__name__)
+_scanner = None
+_observed = {}
 
 
 def sensor_model(device, adv):
@@ -27,10 +29,13 @@ def sensor_model(device, adv):
 async def scan():
     db.set_settings(scan_state="scanning", scan_error="", scan_requested="0")
     try:
-        async with asyncio.timeout(50):
-            devices = await BleakScanner.discover(timeout=30, return_adv=True)
+        if _scanner is None:
+            raise RuntimeError("El escáner Bluetooth no está disponible")
+        await asyncio.sleep(30)
         count = 0
-        for device, adv in devices.values():
+        for device, adv, seen_at in list(_observed.values()):
+            if time.time() - seen_at > 60:
+                continue
             model = sensor_model(device, adv)
             if model:
                 db.discover(device.address, model, adv.rssi)
@@ -58,7 +63,19 @@ async def sample(address):
             result.set_exception(ConnectionError("Sensor disconnected before sending a reading"))
 
     async with asyncio.timeout(45):
-        async with BleakClient(address, timeout=20, disconnected_callback=disconnected) as client:
+        if _scanner is None:
+            raise RuntimeError("El escáner Bluetooth no está disponible")
+        device = None
+        for _ in range(20):
+            device = next((d for d in _scanner.discovered_devices if d.address == address), None)
+            if device is not None:
+                break
+            await asyncio.sleep(1)
+        if device is None:
+            raise TimeoutError("Sensor no visible por Bluetooth; se reintentará en el próximo ciclo")
+        # Reuse the live scanner's device object. Restarting an implicit scan
+        # between discovery and connection loses unpaired devices on BlueZ.
+        async with BleakClient(device, timeout=20, disconnected_callback=disconnected) as client:
             char = client.services.get_characteristic(DATA_UUID)
             if char is None or "notify" not in char.properties:
                 raise ValueError("Firmware incompatible: no se encontró la característica de medición")
@@ -97,6 +114,7 @@ async def cycle():
 
 
 async def main():
+    global _scanner
     db.init()
     db.set_settings(scan_requested="1", active_sensor="")
     task = asyncio.current_task()
@@ -104,17 +122,31 @@ async def main():
     for sig in (signal.SIGTERM, signal.SIGINT):
         loop.add_signal_handler(sig, task.cancel)
     last_cleanup = 0
+
+    def observed(device, adv):
+        if sensor_model(device, adv):
+            _observed[device.address] = (device, adv, time.time())
+
     try:
         while True:
             try:
-                await cycle()
-                if time.time() - last_cleanup > 86400:
-                    with db.database() as conn:
-                        conn.execute("DELETE FROM readings WHERE timestamp < ?", (time.time() - 365 * 86400,))
-                    last_cleanup = time.time()
+                async with BleakScanner(detection_callback=observed) as scanner:
+                    _scanner = scanner
+                    db.set_settings(scan_requested="1", scan_state="pending")
+                    while True:
+                        await cycle()
+                        if time.time() - last_cleanup > 86400:
+                            with db.database() as conn:
+                                conn.execute("DELETE FROM readings WHERE timestamp < ?", (time.time() - 365 * 86400,))
+                            last_cleanup = time.time()
+                        await asyncio.sleep(2)
             except Exception:
-                log.exception("Collector cycle failed; retrying")
-            await asyncio.sleep(2)
+                log.exception("Bluetooth session failed; retrying")
+                db.set_settings(scan_state="error", scan_error="No se pudo iniciar Bluetooth; revisá el adaptador y BlueZ")
+            finally:
+                _scanner = None
+                _observed.clear()
+            await asyncio.sleep(10)
     except asyncio.CancelledError:
         pass
     finally:

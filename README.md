@@ -29,6 +29,8 @@ The default polling interval is five minutes. Each sensor is connected briefly,
 one at a time; a failed reading is retried at the next interval. Actual intervals
 can be longer when sensors take time to respond. More frequent connections can
 use more battery. Close Xiaomi Home if it keeps a sensor connected elsewhere.
+The collector keeps one Bluetooth discovery session open and reuses discovered
+device objects, avoiding BlueZ removing unpaired sensors between scan and connection.
 
 The interface includes temperature/humidity charts, stale-reading indicators,
 per-sensor pause, room names and CSV export. Chart points are averages; CSV retains
