@@ -4,7 +4,7 @@ image=${1:-tempsensing:test}
 volume="tempsensing-test-$$"
 docker volume create "$volume" >/dev/null
 trap 'docker volume rm "$volume" >/dev/null' EXIT
-docker run --rm --user 0:0 -v "$volume:/data" "$image" chown 1000:1000 /data
+docker run --rm --user 0:0 -v "$volume:/data" "$image" sh -c 'chown -R 1000:1000 /data && chmod -R u+rwX,g+rwX /data'
 # The web process creates the DB with its real UID and dropped capabilities.
 docker run --rm --cap-drop ALL --security-opt no-new-privileges -v "$volume:/data" "$image" \
   python -c 'from tempsensing import db; db.init(); db.discover("test", "LYWSD03MMC", -60)'
