@@ -63,7 +63,8 @@ function draw() {
   if (!state) return;
   const chart = $('#chart'), sensors = state.sensors.filter(s => s.enabled), ids = new Set(sensors.map(s=>s.id));
   const points = history.filter(p=>ids.has(p.sensor_id));
-  const hours = Number($('#range').value), end = state.now, start = end-hours*3600, left = 45, right = 980, top = 15, bottom = 270;
+  const width = Math.max(280, chart.clientWidth), hours = Number($('#range').value), end = state.now, start = end-hours*3600, left = 45, right = width-15, top = 15, bottom = 270;
+  chart.setAttribute('viewBox', `0 0 ${width} 310`);
   const values = points.map(p=>p[metric]);
   let min = values.length ? Math.min(...values) : metric === 'temperature_c' ? 10 : 0;
   let max = values.length ? Math.max(...values) : metric === 'temperature_c' ? 30 : 100;
@@ -72,20 +73,21 @@ function draw() {
   const x = t=>left+(t-start)/(end-start)*(right-left), y = v=>bottom-(v-min)/(max-min)*(bottom-top);
   chart.replaceChildren(); chart.setAttribute('aria-label', `Historial de ${metric === 'temperature_c' ? 'temperatura' : 'humedad'}, ${points.length} puntos. Las lecturas exactas están disponibles en Exportar CSV.`);
   for (let i=0;i<=4;i++) { const v=min+(max-min)*i/4, yy=y(v); chart.append(svg('line',{x1:left,x2:right,y1:yy,y2:yy,class:'grid'}),svg('text',{x:left-10,y:yy+4,'text-anchor':'end'},number(v,metric==='temperature_c'?1:0))); }
-  for (let i=0;i<=4;i++) { const t=start+(end-start)*i/4; const date=new Date(t*1000); chart.append(svg('text',{x:x(t),y:300,'text-anchor':i===0?'start':i===4?'end':'middle'},hours>24?date.toLocaleDateString('es-UY',{day:'numeric',month:'short'}):date.toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}))); }
+  const ticks = width < 500 ? 2 : 4;
+  for (let i=0;i<=ticks;i++) { const t=start+(end-start)*i/ticks; const date=new Date(t*1000); chart.append(svg('text',{x:x(t),y:300,'text-anchor':i===0?'start':i===ticks?'end':'middle'},hours>24?date.toLocaleDateString('es-UY',{day:'numeric',month:'short'}):date.toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}))); }
   const maxGap = Math.max(state.interval*2.5, bucket*2.5);
   for (const sensor of sensors) {
     const series = points.filter(p=>p.sensor_id===sensor.id); let path='', previous=null;
     for (const point of series) { const move=!previous || point.timestamp-previous.timestamp>maxGap; path+=`${move?'M':'L'}${x(point.timestamp).toFixed(2)},${y(point[metric]).toFixed(2)} `; previous=point; }
     if (path) chart.append(svg('path',{d:path,class:`line ${color(sensor.id)}`}));
-    for (const point of series) { const dot=svg('circle',{cx:x(point.timestamp),cy:y(point[metric]),r:series.length>150?1.5:3,class:color(sensor.id)}); dot.append(svg('title',{},`${sensor.name}: ${number(point[metric])}${metric==='temperature_c'?'°C':'%'} · ${new Date(point.timestamp*1000).toLocaleString('es-UY')}`)); chart.append(dot); }
+    for (const point of series) { const dot=svg('circle',{cx:x(point.timestamp),cy:y(point[metric]),r:series.length>50?1:3,class:color(sensor.id)}); dot.append(svg('title',{},`${sensor.name}: ${number(point[metric])}${metric==='temperature_c'?'°C':'%'} · ${new Date(point.timestamp*1000).toLocaleString('es-UY')}`)); chart.append(dot); }
   }
   $('#chart-empty').hidden=points.length>0;
   $('#legend').replaceChildren(...sensors.map(s=>{const item=el('span'); item.append(el('i',null,`dot ${color(s.id)}`),document.createTextNode(s.name)); return item;}));
   $('#aggregation').textContent = `Promedios por ${Math.round(bucket/60)} min · ${points.reduce((sum,p)=>sum+p.samples,0).toLocaleString('es-UY')} lecturas`;
   chart.onpointermove = event => {
     if (!points.length) return;
-    const rect=chart.getBoundingClientRect(), target=start+((event.clientX-rect.left)/rect.width*1000-left)/(right-left)*(end-start);
+    const rect=chart.getBoundingClientRect(), target=start+((event.clientX-rect.left)/rect.width*width-left)/(right-left)*(end-start);
     const nearest=points.reduce((a,b)=>Math.abs(a.timestamp-target)<Math.abs(b.timestamp-target)?a:b);
     const sensor=sensors.find(s=>s.id===nearest.sensor_id);
     $('#chart-detail').textContent = `${sensor.name} · ${new Date(nearest.timestamp*1000).toLocaleString('es-UY')} · ${number(nearest.temperature_c)} °C · ${number(nearest.humidity_percent,0)}% humedad`;
@@ -107,4 +109,4 @@ for (const [id, key] of [['temperature-tab','temperature_c'],['humidity-tab','hu
   $(`#${id}`).onclick=()=>{metric=key; for(const tab of ['temperature-tab','humidity-tab']) { $(`#${tab}`).classList.toggle('selected',tab===id); $(`#${tab}`).setAttribute('aria-pressed',String(tab===id)); } $('#chart-unit').textContent=key==='temperature_c'?'°C':'% HR'; draw();};
 }
 $('#interval-form').onsubmit=async event=>{event.preventDefault();try{await api('/api/settings',{interval:Number($('#interval').value)});$('#settings-message').textContent='Frecuencia guardada.';await refresh();}catch(error){$('#settings-message').textContent=error.message;}};
-refresh(); setInterval(refresh,10000);
+refresh(); setInterval(refresh,10000); window.addEventListener('resize',draw);

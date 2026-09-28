@@ -22,6 +22,8 @@ def create_app():
         if request.method == "POST":
             if not request.is_json:
                 abort(415)
+            if not isinstance(request.get_json(), dict):
+                abort(400, "Se esperaba un objeto JSON")
             origin = request.headers.get("Origin")
             if origin and urlsplit(origin).netloc != request.host:
                 abort(403)

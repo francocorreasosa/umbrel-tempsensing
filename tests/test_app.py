@@ -86,6 +86,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.client.post('/api/settings',json={'interval':60}).status_code,200)
         self.assertEqual(self.client.post('/api/scan',json={},headers={'Origin':'https://evil.example'}).status_code,403)
         self.assertEqual(self.client.post('/api/scan',data='{}').status_code,415)
+        self.assertEqual(self.client.post('/api/settings',json=[]).status_code,400)
         self.assertEqual(self.client.get('/api/history?hours=999999').status_code,400)
 
     def test_export_and_time_range(self):
